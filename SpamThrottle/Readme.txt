@@ -1,6 +1,6 @@
 SpamThrottle (Eliminates duplicated messages in chat channels)
 
-	Version:	Vanilla_1.11c
+	Version:	Vanilla_1.12c
 	Date:		30 December 2016
 	Author:		Mopar
 
@@ -65,7 +65,7 @@ Changes (for PRIVATE SERVER 1.12 version):
 
 	Vanilla_1.11 (17/08/2016): Added (optional) aggressive gold spam filtering
 	
-	Vanilla_1.11b (30/12/2016): Added WIM support (by laytya)
+	Vanilla_1.12c (30/12/2016): Added WIM support (by laytya)
 				    Added "invite to channel" spam block (by Sqoops)
 				    Added Multi-line spam block (by EvilSanta)
 
