@@ -1,7 +1,7 @@
 --[[
 	SpamThrottle - Remove redundant and annoying chat messages
-	Version:	Vanilla 1.11c
-	Date:		30 December 2016
+	Version:	Vanilla 1.12d
+	Date:		04 January 2017
 	Author:	Mopar
 	This is a port of SpamThrottle to work with Vanilla WoW, release 1.12.1 and 1.12.2.
 	I am also the author of the retail version (no longer maintained).
@@ -42,6 +42,7 @@ MessageList["WIM_Core"] = {}
 MessageTime["WIM_Core"] = {}
 MessageLatestTime["WIM_Core"] = {}
 MessageCount["WIM_Core"] = {}
+local WIM_Present = false;
 local MultiMessageCache = {}
 local LastPurgeTime = time()
 local LastAuditTime = time()
@@ -279,6 +280,8 @@ function UFOverHookEvents()
 		if WIM_ChatFrame_OnEvent then 
 			SpamThrottle_Orig_WIM_ChatFrame_OnEvent = WIM_ChatFrame_OnEvent;
 			WIM_ChatFrame_OnEvent = SpamThrottle_WIM_ChatFrame_OnEvent;
+			WIM_Present = true;
+			SpamThrottle_SetAlphas(SpamThrottle_Config.STActive);
 		end
 		SpamThrottleMessage(true,"Chat message hook is now enabled.");
     	UFStartTime = nil;
@@ -297,7 +300,7 @@ UpdateFrame:RegisterEvent("OnUpdate");
 --============================
 -- Local function to normalize chat strings to avoid attempts to bypass SpamThrottle
 --============================
-local function SpamThrottle_strNorm(msg, Author, pattern)
+local function SpamThrottle_strNorm(msg, Author)
 	local Nmsg = "";
 	local c = "";
 	local lastc = "";
@@ -315,12 +318,10 @@ local function SpamThrottle_strNorm(msg, Author, pattern)
 	Nmsg = string.gsub(Nmsg,"0","O");
 	Nmsg = string.gsub(Nmsg,"3","E");
 	Nmsg = string.gsub(Nmsg,"...hic!","");
-	if not pattern then
 		Nmsg = string.gsub(Nmsg,"%d","");
 		Nmsg = string.gsub(Nmsg,"%c","");
 		Nmsg = string.gsub(Nmsg,"%p","");
 		Nmsg = string.gsub(Nmsg,"%s","");
-	end
 	Nmsg = string.upper(Nmsg);
 	Nmsg = string.gsub(Nmsg,"SH","S");
 	
@@ -656,13 +657,13 @@ end
 function SpamThrottle_SetWispBackAlpha(myStatus)
 	local theAlpha = 1.0;
 	
-	if not myStatus then
+	if not myStatus or WIM_Present then
 		theAlpha = 0.5;
 	end
 	
 	STWispBack_CheckButton:SetAlpha(theAlpha);
 	
-	if myStatus then
+	if myStatus and not WIM_Present then
 		STWispBack_CheckButton:Enable();
 	else
 		STWispBack_CheckButton:Disable();
@@ -1066,8 +1067,8 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 	end
 
 	for key, value in pairs(SpamThrottle_KeywordFilterList) do
-		local testval = SpamThrottle_strNorm(value,"",true); -- what's the point of normalizing the self-defined keywords, this removes the ability to use lua patterns. need capitals tho...
-		if (string.find(NormalizedMessage,value) ~= nil) then BlockFlag = true; end
+		local testval = SpamThrottle_strNorm(value,"");
+		if (string.find(NormalizedMessage,testval) ~= nil) then BlockFlag = true; end
 	end
 
 	if SpamThrottle_Config.STReverse then -- Completely different processing if this is the case
@@ -1094,7 +1095,8 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 
 	local frameName = this:GetName()
 	MessageLatestTime[frameName][NormalizedMessage] = time();
-
+	
+	if not multiCheck then
 	if (event == "CHAT_MSG_YELL" or event == "CHAT_MSG_SAY" or event == "CHAT_MSG_WHISPER") then
 		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][NormalizedMessage] ~= nil) then	-- this should always be true, but worth checking to avoid an error
 			if time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
@@ -1107,6 +1109,7 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 				BlockFlag = true;
 			end
 		end
+	end
 	end
 
 	if BlockFlag then
@@ -1225,13 +1228,13 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 			local BlockType = SpamThrottle_ShouldBlock(arg1,arg2,event,arg9);
 			SpamThrottle_RecordMessage(arg1,arg2);
 
-			if SpamThrottle_Config.STMultiWisp and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse then
+			if SpamThrottle_Config.STMultiWisp and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse and not WIM_msg then
 				if BlockType == 0 then
 					BlockType = SpamThrottle_ShouldMultiBlock(arg1,arg2,event,arg9);
 				end
 			end
 			
-			if SpamThrottle_Config.STWispBack and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse then
+			if SpamThrottle_Config.STWispBack and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse and not WIM_Present then
 				if BlockType == 1 or BlockType == 2 then
 					SendChatMessage(SpamThrottleChatMsg.WhisperBack, "WHISPER", nil, arg2);
 					SpamThrottleMessage(BlockReportMode, "BLOCKED [",arg4,"] {",arg2,"} ",arg1);

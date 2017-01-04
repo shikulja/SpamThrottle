@@ -4,7 +4,7 @@
 -- Localization Strings
 
 SpamThrottleProp = {};
-SpamThrottleProp.Version = "Vanilla_1.12c";
+SpamThrottleProp.Version = "Vanilla_1.12d";
 SpamThrottleProp.Author = "Mopar";
 SpamThrottleProp.AppName = "SpamThrottle";
 SpamThrottleProp.Label = SpamThrottleProp.AppName .. " version " .. SpamThrottleProp.Version;
@@ -77,7 +77,7 @@ SpamThrottleConfigObjectTooltip ={
 	STYellMsgs = "Enables filtering of player messages yelled by nearby players";
 	STSayMsgs = "Enables filtering of player messages said by nearby players.";
 	STWispMsgs = "Enables filtering of player messages whispered to you directly.";
-	STWispBack = "Automatically responds with a polite whisper back to the player telling them their message was blocked.";
+	STWispBack = "Automatically responds with a polite whisper back to the player telling them their message was blocked. Will not work if WIM present";
 	STMultiWisp = "Enables filtering of multiple player messages combined, whispered to you by the same player within the last few seconds.";
 	STReverse = "Reverses the sense of SpamThrottle filtering. Messages matching a keyword will be shown, all others will be blocked.";
 	STGap = "Sets the minimum required gap between repeated messages. If the gap time has not been reached for that player and message since the last one, it will be filtered.";
