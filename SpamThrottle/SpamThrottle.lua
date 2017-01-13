@@ -79,7 +79,8 @@ Default_SpamThrottle_KeywordFilterList = {
 	"Blessed Blade of the Windseeker", "item4game", "moneyforgames",
 	"goldinsider", "sinbagame", "sinbagold", "sinbaonline", "susangame",
 	"4gamepower", "iloveugold", "okogames", "okogomes", "item4wow", "gold4mmo",
-	"wtsitem", "golddeal", "g4wow", "power%s*lev", "power%s*lvl" }
+	"wtsitem", "golddeal", "g4wow", "power%s*lev", "power%s*lvl",
+	"legacy-boost", "mmotank", "naxxgames", "nost100", "wwvokgames"}
 
 Default_SpamThrottle_PlayerFilterList = {};
 
