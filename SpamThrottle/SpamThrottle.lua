@@ -1,7 +1,7 @@
 --[[
 	SpamThrottle - Remove redundant and annoying chat messages
-	Version:	Vanilla 1.12e
-	Date:		13 January 2017
+	Version:	Vanilla 1.13
+	Date:		16 January 2017
 	Author:	Mopar
 	This is a port of SpamThrottle to work with Vanilla WoW, release 1.12.1 and 1.12.2.
 	I am also the author of the retail version (no longer maintained).
@@ -66,6 +66,7 @@ Default_SpamThrottle_Config = {
 		STWispMsgs = true;
 		STWispBack = false;
 		STMultiWisp = true;
+		STWispMsgsOFF = false;
 		STReverse = false;
 		STGap = 180;
 		STBanPerm = false;
@@ -449,6 +450,9 @@ function SpamThrottle_init()
 		SpamThrottle_PlayerFilterList = Default_SpamThrottle_PlayerFilterList;
 		SpamThrottleMessage(ErrorMsg, SpamThrottleChatMsg.LoadPlayerbanDefault);
 	end
+	
+	SpamThrottle_ToggleWispersOFF( SpamThrottle_Config.STWispMsgsOFF );
+		
 end
 
 
@@ -687,6 +691,13 @@ function SpamThrottle_SetMultiWispAlpha(myStatus)
 	end
 end
 
+function SpamThrottle_ToggleWispersOFF(myStatus)
+	if myStatus then 
+		SendChatMessage(".wr on", "SAY");
+	else
+		SendChatMessage(".wr off", "SAY");
+	end
+end
 
 function SpamThrottle_SetBanSliderAlpha(myStatus)	
 	if myStatus then

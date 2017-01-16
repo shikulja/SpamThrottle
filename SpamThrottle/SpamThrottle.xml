@@ -235,9 +235,38 @@
 					<AbsDimension x="375" y="375"/>
 				</Size>
 				<Anchors>
-					<Anchor point="TOPLEFT">
+					<Anchor point="TOPLEFT" relativeTo="SpamThrottleConfigFrame" relativePoint="TOPLEFT">
 						<Offset>
-							<AbsDimension x="12" y="-45"/>
+							<AbsDimension x="15" y="-45" />
+						</Offset>
+					</Anchor>
+				</Anchors>
+		
+				<Frames>
+			
+					<ScrollFrame name="SpamThrottleConfigGeneralScroll" inherits="UIPanelScrollFrameTemplate">
+					
+						<Anchors>
+							<Anchor point="TOPLEFT" relativeTo="SpamThrottleConfigFrameGeneral" relativePoint="TOPLEFT">
+								<Offset>
+									<AbsDimension x="0" y="-15" />
+								</Offset>
+							</Anchor>
+							<Anchor point="BOTTOMRIGHT" relativeTo="SpamThrottleConfigFrameGeneral" relativePoint="BOTTOMRIGHT">
+								<Offset>
+									<AbsDimension x="-30" y="20" />
+								</Offset>
+							</Anchor>
+						</Anchors>
+					<ScrollChild>
+							<Frame name="SpamThrottleConfigFrameGeneralPanel">
+								<Size>
+									<AbsDimension x="355" y="400"/>
+								</Size>
+								<Anchors>
+									<Anchor point="TOPLEFT">
+						<Offset>
+							<AbsDimension x="5" y="30"/>
 						</Offset>
 					</Anchor>
 				</Anchors>
@@ -362,7 +391,7 @@
                             </Anchor>
                         </Anchors>
                    </CheckButton>
-                   <CheckButton name="STReverse_CheckButton" inherits="OptionsCheckButtonTemplate">
+                   <CheckButton name="STWispMsgsOFF_CheckButton" inherits="OptionsCheckButtonTemplate">
                    		<Anchors>
                             <Anchor point="TOPLEFT" relativeTo="STMultiWisp_CheckButton" relativePoint="BOTTOMLEFT">
                                 <Offset>
@@ -370,9 +399,29 @@
                                 </Offset>
                             </Anchor>
                         </Anchors>
-                   </CheckButton>
+                   <Scripts>
+											<OnClick>
+												SpamThrottle_ToggleWispersOFF(this:GetChecked());
+												
+											</OnClick>
+										</Scripts>
+									</CheckButton>
+								   <CheckButton name="STReverse_CheckButton" inherits="OptionsCheckButtonTemplate">
+										<Anchors>
+											<Anchor point="TOPLEFT" relativeTo="STWispMsgsOFF_CheckButton" relativePoint="BOTTOMLEFT">
+												<Offset>
+													<AbsDimension x="0" y="5"/>
+												</Offset>
+											</Anchor>
+										</Anchors>
+								   </CheckButton>
                 </Frames>
-                <Scripts>
+                							</Frame>
+						</ScrollChild>
+					</ScrollFrame>
+					
+				</Frames>
+				<Scripts>
 					<OnShow>
 						this:SetBackdropBorderColor(0.4, 0.4, 0.4);
 						this:SetBackdropColor(0.15, 0.15, 0.15);
@@ -386,9 +435,9 @@
                     <AbsDimension x="375" y="345"/>
                 </Size>
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="SpamThrottleConfigFrameGeneral">
+                    <Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="SpamThrottleConfigFrame">
                         <Offset>
-                            <AbsDimension x="15" y="0"/>
+                            <AbsDimension x="-15" y="-45"/>
                         </Offset>
                     </Anchor>
                 </Anchors>
@@ -596,9 +645,9 @@
                     <AbsDimension x="375" y="200"/>
                 </Size>
                 <Anchors>
-                    <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="SpamThrottleConfigFrameGeneral">
+                    <Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" relativeTo="SpamThrottleConfigFrame">
                         <Offset>
-                            <AbsDimension x="0" y="-20"/>
+                            <AbsDimension x="15" y="15"/>
                         </Offset>
                     </Anchor>
                 </Anchors>
