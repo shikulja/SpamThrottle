@@ -44,6 +44,7 @@ MessageLatestTime["WIM_Core"] = {}
 MessageCount["WIM_Core"] = {}
 local WIM_Present = false;
 local MultiMessageCache = {}
+local MultiLastMsg = {}
 local LastPurgeTime = time()
 local LastAuditTime = time()
 local FilteredCount = 0;
@@ -80,7 +81,7 @@ Default_SpamThrottle_KeywordFilterList = {
 	"Blessed Blade of the Windseeker", "item4game", "moneyforgames",
 	"goldinsider", "sinbagame", "sinbagold", "sinbaonline", "susangame",
 	"4gamepower", "iloveugold", "okogames", "okogomes", "item4wow", "gold4mmo",
-	"wtsitem", "golddeal", "g4wow", "power%s*lev", "power%s*lvl",
+	"wtsitem", "golddeal", "g4wow", 
 	"legacy-boost", "mmotank", "naxxgames", "nost100", "wwvokgames"}
 
 Default_SpamThrottle_PlayerFilterList = {};
@@ -400,6 +401,20 @@ function table.find(table, element) -- find element v of T satisfying f(v)
 	return nil
 end
 
+
+local function MergeTables(a, b)
+	if type(a) == 'table' and type(b) == 'table' then
+			table.foreach(b, function(k,v) 
+				for	kk,vv in a do
+				 if v == vv then return; end
+				end
+				table.insert(a,v)
+			end)
+	end
+    return a
+end
+
+
 --============================
 --= Utility function to check each variable in two tables making sure their variable type match.
 --============================
@@ -430,12 +445,23 @@ function SpamThrottle_init()
 	-- Install or upgrade, Load Variable from default and show config window
 	
 	if type(SpamThrottle_Config) ~= "table" or not SpamThrottle_TableTypeMatch(Default_SpamThrottle_Config, SpamThrottle_Config) or (SpamThrottle_Config.Version ~= Default_SpamThrottle_Config.Version) then
-		SpamThrottle_Config = {};
-		SpamThrottle_Config = Default_SpamThrottle_Config;
-		SpamThrottle_KeywordFilterList = {};
+		if SpamThrottle_Config == nil then SpamThrottle_Config = {}; end
+		table.foreach(Default_SpamThrottle_Config, function(k,v)
+			if SpamThrottle_Config[k] == nil then 
+				SpamThrottle_Config[k] = v; 
+		--		SpamThrottleMessage(true, k.." = "..v);
+			end
+		end)
+		
+		if type(SpamThrottle_KeywordFilterList) == "table" then
+			MergeTables(SpamThrottle_KeywordFilterList, Default_SpamThrottle_KeywordFilterList);
+		else
 		SpamThrottle_KeywordFilterList = Default_SpamThrottle_KeywordFilterList;
-		SpamThrottle_PlayerFilterList = {};
+		end
+		if SpamThrottle_PlayerFilterList == nil then
 		SpamThrottle_PlayerFilterList = Default_SpamThrottle_PlayerFilterList;
+		end
+
 		SpamThrottleMessage(ErrorMsg, SpamThrottleChatMsg.LoadDefault);
 	end
 	
@@ -719,7 +745,7 @@ function SpamThrottle_KeywordList_Update()
 		local nametag = getglobal("SpamThrottleKeywordItem" .. line)
 		lineplusoffset = line + FauxScrollFrame_GetOffset(KeywordListScrollFrame);
 					
-		if lineplusoffset <= tableLen then
+		if lineplusoffset <= tableLen and SpamThrottle_KeywordFilterList[lineplusoffset] ~= nil then
 			local listword = string.gsub(SpamThrottle_KeywordFilterList[lineplusoffset]," ","_");
 			nametag:SetText(listword);
 			if nametag ~= SpamThrottle_LastClickedItem then
@@ -745,6 +771,9 @@ function SpamThrottle_AddKeyword(theKeyword)
 end
 
 function SpamThrottle_AddPlayerban(thePlayer)
+	
+	MultiMessageCache[thePlayer] = nil
+	
 	thePlayer = string.upper(string.gsub(thePlayer," ",""));
 	local index = table.find(SpamThrottle_PlayerFilterList,thePlayer)
 	if index then return end;
@@ -983,7 +1012,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 			theScore = theScore + 100
 		end
 	end
-	
+	SpamThrottleMessage(false, "Score : "..theScore.." : "..Author.." : "..msg);
 	
 	if theScore > theThreshold then
 		BlockFlag = true;
@@ -992,7 +1021,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 		SpamThrottleMessage(false, "Blocked "..Author.." gold advertising: "..msg);
 	end
 	
-	return theReturn;
+	return BlockFlag;
 end
 
 --============================
@@ -1060,6 +1089,7 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 	
 	if string.find(msg, SpamThrottleGeneralMask) then BlockFlag = true; end
 	
+	if multiCheck then SpamThrottleMessage(false, "multiCheck") end
 	if SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author) then BlockFlag = true; end
 
 	if not SpamThrottle_Config.STBanPerm then
@@ -1161,6 +1191,9 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 	end
 	local playerCache = MultiMessageCache[Author]
 	playerCache.lastMessage = time()
+	if MultiLastMsg.time and (MultiLastMsg.time - playerCache.lastMessage < 2) and MultiLastMsg.msg == msg and MultiLastMsg.Author == Author then 
+		return 0;
+	end
 	local payload = {
 		msg = msg,
 		event = event,
@@ -1169,18 +1202,21 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 	}
 	table.insert(playerCache.history, payload)
 
+	MultiLastMsg = {
+		Author = Author,
+		msg = msg,
+		time = playerCache.lastMessage
+	}
 	-- concatenate all messages sent in the past few seconds
 	local multiMsg = ""
 	for i, pl in ipairs(playerCache.history) do
-		if time() - pl.time < 10 then
+		SpamThrottleMessage(false, "cache "..i.." : "..pl.msg)
+		if time() - pl.time < 20 then
 			multiMsg = string.format("%s%s", multiMsg, pl.msg)
 		end
 	end
 	-- check if combined message should be blocked
 	local ShouldBlock = SpamThrottle_ShouldBlock(multiMsg,Author,event,channel,true)
-	if ShouldBlock then
-		MultiMessageCache[Author] = nil
-	end
 
 	return ShouldBlock
 end

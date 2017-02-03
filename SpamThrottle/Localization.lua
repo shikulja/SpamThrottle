@@ -87,9 +87,9 @@ SpamThrottleConfigObjectTooltip ={
 	STBanTimeout = "Players will automatically be removed from this list after this amount of time if permanent ban (above) is not set.";
 }
 
-SpamThrottleGSC1 = { "50g", "50G" };
+SpamThrottleGSC1 = { "50g", "50G", "80G" };
 SpamThrottleGSC2 = { "\\$", "100", "\\\\", "USD", "COM", "W@W", "C@M", "G4", ">>", ">>>" };
-SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL" };
+SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL", "POTION" };
 SpamThrottleGSO2 = { "PRICE", "GOLD", "CURRENCY", "MONEY", "STARS", "SKYPE", "EPIC", "DOLLARS", "PROFESSIONAL", "RELIABLE", "PROMOTION", "DELIVER", "NAXX", "GAMES", "GREETINGS", "WEBSITE", "GOID", "CQM" };
 SpamThrottleGSUC5 = { "ITEM4" }
-SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM" }
+SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK", "MMO" }
