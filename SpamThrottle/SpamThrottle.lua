@@ -1291,7 +1291,7 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 			local BlockType = SpamThrottle_ShouldBlock(arg1,arg2,event,arg9);
 			SpamThrottle_RecordMessage(arg1,arg2);
 
-			if SpamThrottle_Config.STMultiWisp and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse and not WIM_msg then
+			if SpamThrottle_Config.STMultiWisp and (event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_CHANNEL" ) and not SpamThrottle_Config.STReverse and not WIM_msg then
 				if BlockType == 0 then
 					BlockType = SpamThrottle_ShouldMultiBlock(arg1,arg2,event,arg9);
 				end
