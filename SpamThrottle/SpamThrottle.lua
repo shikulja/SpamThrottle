@@ -70,11 +70,15 @@ Default_SpamThrottle_Config = {
 		STWispMsgsOFF = false;
 		STReverse = false;
 		STGap = 180;
-		STBanPerm = false;
+		STBanPerm = true;
 		STBanTimeout = 600;
 		STWhiteChannel1 = "";
 		STWhiteChannel2 = "";
 		STWhiteChannel3 = "";
+		MinimapButtonAtt = true;
+		STMinimapButton = true;
+		ButtonPosX = -17;
+		ButtonPosY = -113;
 }
 
 Default_SpamThrottle_KeywordFilterList = {
@@ -93,6 +97,9 @@ local SpamThrottle_GlobalBanList = {}
 SpamThrottle_LastClickedItem = nil;
 SpamThrottle_LastClickedTable = nil;
 SpamThrottle_LastClickedValue = nil;
+
+SpamThrottle_LastPlayerBanned = " ";
+SpamThrottle_LastPlayerFiltered = " ";
 
 SpamThrottle_UTF8Convert = {};
 
@@ -318,6 +325,7 @@ local function SpamThrottle_strNorm(msg, Author)
 	Nmsg = string.gsub(msg,"\\/\\/","W");
 	Nmsg = string.gsub(Nmsg,"/\\/\\","M");
 	Nmsg = string.gsub(Nmsg,"/-\\","A");
+	Nmsg = string.gsub(Nmsg,"!<","K");
 	Nmsg = string.gsub(Nmsg,"0","O");
 	Nmsg = string.gsub(Nmsg,"3","E");
 	Nmsg = string.gsub(Nmsg,"...hic!","");
@@ -327,6 +335,8 @@ local function SpamThrottle_strNorm(msg, Author)
 		Nmsg = string.gsub(Nmsg,"%s","");
 	Nmsg = string.upper(Nmsg);
 	Nmsg = string.gsub(Nmsg,"SH","S");
+	Nmsg = string.gsub(Nmsg,"RN","M");
+	Nmsg = string.gsub(Nmsg,"VV","W");
 	
 	local Nlen = string.len(Nmsg);
 
@@ -461,7 +471,8 @@ function SpamThrottle_init()
 		if SpamThrottle_PlayerFilterList == nil then
 		SpamThrottle_PlayerFilterList = Default_SpamThrottle_PlayerFilterList;
 		end
-
+		
+		SpamThrottle_Config.Version = Default_SpamThrottle_Config.Version;
 		SpamThrottleMessage(ErrorMsg, SpamThrottleChatMsg.LoadDefault);
 	end
 	
@@ -488,9 +499,15 @@ end
 function SpamThrottle_OnEvent()
 	if event == "PLAYER_ENTERING_WORLD" then
 		SpamThrottle_init();
+		SpamThrottle_SetButtonPosition();
 	end
 end
 
+function SpamThrottleCreateTooltip(STTooltip)
+	if SpamThrottle_LastPlayerBanned ~= " " then STTooltip:AddLine("Last player BANed: ".. SpamThrottle_LastPlayerBanned , 0, 1, 0); end
+	if SpamThrottle_LastPlayerFiltered ~= " " then STTooltip:AddLine("Last player filtered: ".. SpamThrottle_LastPlayerFiltered , 0, 1, 0); end
+end
+	
 --============================
 --= User Interface Handling Functions
 --============================
@@ -547,7 +564,7 @@ function SpamThrottleConfigFrameLoadSettings(configset)
 	SpamThrottle_SetBanSliderAlpha(SpamThrottle_Config.STBanPerm);
 	for key,value in pairs(configset) do
 		SpamThrottleMessage(DebugMsg, key, value, "type=",type(value));
-		if key == "Version" then
+		if key == "Version" or string.find(key,"ST") == nil then
 			-- do nothing
 		elseif type(value) == "boolean"  then
 			local nametag = getglobal(key .. "_CheckButton");
@@ -571,13 +588,7 @@ function SpamThrottleConfigFrameLoadSettings(configset)
 			local nametag = getglobal(key .. "_Slider");
 			if type(nametag) ~= "nil" then
 				nametag:SetValue(value);
-
-				nametag = getglobal(key .. "_SliderLow");
-				nametag:SetText("0");
-				nametag = getglobal(key .. "_SliderHigh");
-				nametag:SetText("3600");
-
-				nametag = getglobal(key .. "_SliderText");
+				nametag = getglobal(key .. "_SliderTitle");
 				nametag:SetText(SpamThrottleConfigObjectText[key]);
 			else
 				SpamThrottleMessage(ErrorMsg, SpamThrottleChatMsg.ObjectLoadFail, key, "(", value, ")");
@@ -774,12 +785,16 @@ function SpamThrottle_AddPlayerban(thePlayer)
 	
 	MultiMessageCache[thePlayer] = nil
 	
+	local pl  = thePlayer; 
+	
 	thePlayer = string.upper(string.gsub(thePlayer," ",""));
 	local index = table.find(SpamThrottle_PlayerFilterList,thePlayer)
 	if index then return end;
 
 	SpamThrottle_PlayerBanTime[thePlayer] = time();
 	
+	SpamThrottle_LastPlayerBanned = pl; 
+
 	table.insert(SpamThrottle_PlayerFilterList,thePlayer);
 	table.sort(SpamThrottle_PlayerFilterList);
 	SpamThrottle_PlayerbanList_Update();
@@ -1012,7 +1027,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 			theScore = theScore + 100
 		end
 	end
-	SpamThrottleMessage(false, "Score : "..theScore.." : "..Author.." : "..msg);
+	SpamThrottleMessage(DebugMsg, "Score : "..theScore.." : "..Author.." : "..msg.." : "..NormalizedMessage);
 	
 	if theScore > theThreshold then
 		BlockFlag = true;
@@ -1280,6 +1295,10 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 				if BlockType == 0 then
 					BlockType = SpamThrottle_ShouldMultiBlock(arg1,arg2,event,arg9);
 				end
+			end
+			
+			if BlockType ~= 0 then
+				SpamThrottle_LastPlayerFiltered = arg2
 			end
 			
 			if SpamThrottle_Config.STWispBack and event == "CHAT_MSG_WHISPER" and not SpamThrottle_Config.STReverse and not WIM_Present then

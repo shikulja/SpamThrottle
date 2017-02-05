@@ -1,6 +1,7 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/
 ..\FrameXML\UI.xsd">
     <Script file="Localization.lua"/>
+    <Script file="STMinimapButton.lua"/>
     <Script file="SpamThrottle.lua"/>
     
     <GameTooltip name="SpamThrottleTooltip" frameStrata="TOOLTIP" hidden="true" inherits="GameTooltipTemplate">
@@ -21,6 +22,81 @@
 		</Scripts>
 	</Frame>
 	
+<Button name="SpamThrottle_MinimapButtonFrame" toplevel="true" frameStrata="HIGH" parent="Minimap" enableMouse="true" movable="true" hidden="false">
+		<Size>
+			<AbsDimension x="33" y="33"/>
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset>
+					<AbsDimension x="-18" y="-100"/>
+				</Offset>
+			</Anchor>
+		</Anchors>
+		<Layers>
+			<Layer level="BACKGROUND">
+				<Texture name="$parent_Texture" file="Interface\AddOns\SpamThrottle\icon">
+					<Size>
+						<AbsDimension x="17" y="17"/>
+					</Size>
+					<Anchors>
+						<Anchor point="TOPLEFT">
+							<Offset>
+								<AbsDimension x="8" y="-8"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<TexCoords left="0.075" right="0.925" top="0.075" bottom="0.925"/>
+				</Texture>
+			</Layer>
+		<Layer level="OVERLAY">
+			<Texture file="Interface\Minimap\MiniMap-TrackingBorder">
+				<Size>
+					<AbsDimension x="56" y="56"/>
+				</Size>
+				<Anchors>
+					<Anchor point="TOPLEFT"/>
+				</Anchors>
+			</Texture>
+		</Layer>
+		</Layers>
+		<HighlightTexture alphaMode="ADD" file="Interface\Minimap\UI-Minimap-ZoomButton-Highlight"/>
+		<Scripts>
+			<OnLoad>
+				this:RegisterForClicks("LeftButtonUp","RightButtonUp");
+				this:RegisterForDrag("LeftButton");
+			</OnLoad>
+			<OnMouseDown>
+				SpamThrottle_MinimapButtonFrame_Texture:SetTexCoord(0,1,0,1);
+			</OnMouseDown>
+			<OnMouseUp>
+				SpamThrottle_MinimapButtonFrame_Texture:SetTexCoord(.075,.925,.075,.925);
+			</OnMouseUp>
+			<OnClick>
+				SpamThrottle_OnClick(arg1);
+			</OnClick>
+			<OnEnter>
+				
+				GameTooltip:SetOwner(this, "ANCHOR_LEFT");
+				GameTooltip:AddLine("SpamThrottle " .. SpamThrottleProp.Version);
+				SpamThrottleCreateTooltip(GameTooltip)
+				GameTooltip:Show();
+			</OnEnter>
+			<OnLeave>
+				
+				GameTooltip:Hide();
+			</OnLeave>
+			<OnDragStart>
+				SpamThrottle_DragStart();
+			</OnDragStart>
+			<OnDragStop>
+				SpamThrottle_DragStop();
+			</OnDragStop>
+			<OnUpdate>
+				SpamThrottle_OnUpdate(arg1);
+			</OnUpdate>
+		</Scripts>
+	</Button>
 	<!-- Edit Box Template -->
 	<EditBox name="SpamThrottleEditBoxTemplate" historyLines="0" virtual="true">
             <Size>
@@ -81,18 +157,94 @@
     </EditBox>
     
     <!-- Slider Templates -->
-	<Slider name="SpamThrottleSliderTemplate" inherits="OptionsSliderTemplate" minValue="0" maxValue="3600" valueStep="10" virtual="true">
-		<Scripts>
-			<OnEnter>
-				GameTooltip:SetOwner(this, "ANCHOR_RIGHT");
-				GameTooltip:SetText(this:GetValue());
-			</OnEnter>
-			<OnValueChanged>
-				GameTooltip:SetText(this:GetValue());
-			</OnValueChanged>
-			<OnLeave>
-				GameTooltip:Hide();
-			</OnLeave>
+	<Slider name="SpamThrottleSliderTemplate" orientation="HORIZONTAL" virtual="true" enableMouse="true">
+		<Backdrop bgFile="Interface\Buttons\UI-SliderBar-Background" edgeFile="Interface\Buttons\UI-SliderBar-Border" tile="true">
+			<EdgeSize>
+				<AbsValue val="8"/>
+			</EdgeSize>
+			<TileSize>
+				<AbsValue val="8"/>
+			</TileSize>
+			<BackgroundInsets>
+				<AbsInset left="3" right="3" top="6" bottom="6"/>
+			</BackgroundInsets>
+		</Backdrop>
+		<Layers>
+			<Layer level="ARTWORK">
+				<FontString name="$parentTitle"  font="Fonts\FRIZQT__.TTF" text="">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="$parent" relativePoint="TOPLEFT">
+							<Offset>
+								<AbsDimension x="0" y="14"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<FontHeight>
+						<AbsValue val="11" />
+					</FontHeight>
+					<Color r="1" g="0.8196079" b="0" />
+					<Shadow>
+						<Color r="0" g="0" b="0" />
+						<Offset>
+						<AbsDimension x="1" y="-1" />
+						</Offset>
+					</Shadow>
+				</FontString>
+				<FontString name="$parentEditBox" inherits="GameFontNormalSmall" text="Test">
+					<Anchors>
+						<Anchor point="TOP" relativeTo="$parent" relativePoint="BOTTOM">
+							<Offset>
+								<AbsDimension x="0" y="3"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<FontHeight>
+						<AbsValue val="11" />
+					</FontHeight>
+					<Color r="1" g="0.8196079" b="0" />
+					<Shadow>
+						<Color r="0" g="0" b="0" />
+						<Offset>
+						<AbsDimension x="1" y="-1" />
+						</Offset>
+					</Shadow>
+				</FontString>
+				<FontString name="$parentText" inherits="GameFontNormalSmall">
+					<Anchors>
+						<Anchor point="BOTTOM" relativePoint="TOP"/>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentLow" inherits="GameFontHighlightSmall" text="LOW">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT">
+							<Offset>
+								<AbsDimension x="2" y="3"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+				<FontString name="$parentHigh" inherits="GameFontHighlightSmall" text="HIGH">
+					<Anchors>
+						<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT">
+							<Offset>
+								<AbsDimension x="-2" y="3"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<ThumbTexture name="$parentThumb" file="Interface\Buttons\UI-SliderBar-Button-Horizontal">
+		<Size>
+			<AbsDimension x="32" y="32"/>
+			</Size>
+			</ThumbTexture>
+			<Scripts>
+			<OnShow>
+				local sliderMin, sliderMax = this:GetMinMaxValues();
+				getglobal(this:GetName().."Low"):SetText(sliderMin);
+				getglobal(this:GetName().."High"):SetText(sliderMax);
+			</OnShow>
 		</Scripts>
 	</Slider>
     
@@ -415,6 +567,21 @@
 											</Anchor>
 										</Anchors>
 								   </CheckButton>
+                <CheckButton name="STMinimapButton_CheckButton" inherits="OptionsCheckButtonTemplate">
+					<Anchors>
+						<Anchor point="TOPLEFT" relativeTo="STReverse_CheckButton" relativePoint="BOTTOMLEFT">
+							<Offset>
+								<AbsDimension x="-35" y="5"/>
+							</Offset>
+						</Anchor>
+					</Anchors>
+					<Scripts>
+						<OnClick>
+							SpamThrottle_ToggleMinibutton(this:GetChecked());
+							
+						</OnClick>
+					</Scripts>
+			    </CheckButton>
                 </Frames>
                 							</Frame>
 						</ScrollChild>
@@ -616,7 +783,7 @@
 							</OnTabPressed>
 						</Scripts>					</EditBox>
 					
-                    <Slider name="STGap_Slider" inherits="SpamThrottleSliderTemplate">
+                    <Slider name="STGap_Slider" inherits="SpamThrottleSliderTemplate" minValue="0" maxValue="3600" valueStep="5">
                         <Size>
                             <AbsDimension x="270" y="20"/>
                         </Size>
@@ -627,11 +794,18 @@
                                 </Offset>
                             </Anchor>
                         </Anchors>
+                    <Scripts>
+							<OnValueChanged>
+								
+								getglobal(this:GetName().."EditBox"):SetText(this:GetValue());
+							</OnValueChanged>
+							
+						</Scripts>
                     </Slider>
                     
                 </Frames>
                 
-                <Scripts>
+<Scripts>
                     <OnShow>
                         this:SetBackdropBorderColor(0.4, 0.4, 0.4);
                         this:SetBackdropColor(0.15, 0.15, 0.15);
@@ -1026,7 +1200,7 @@
                         <Anchors>
                             <Anchor point="TOPLEFT" relativeTo="SpamThrottleConfigFramePlayerbans">
                                 <Offset>
-                                    <AbsDimension x="5" y="-6"/>
+                                    <AbsDimension x="-25" y="-6"/>
                                 </Offset>
                             </Anchor>
                         </Anchors>
@@ -1077,7 +1251,7 @@
                         <Anchors>
                             <Anchor point="BOTTOMRIGHT" relativeto="SpamThrottleConfigFramePlayerbans">
                                 <Offset>
-                                    <AbsDimension x="-15" y="160"/>
+                                    <AbsDimension x="-45" y="160"/>
                                 </Offset>
                             </Anchor>
                         </Anchors>
@@ -1121,9 +1295,9 @@
                         </Scripts>
                     </CheckButton>
                     
-                    <Slider name="STBanTimeout_Slider" inherits="SpamThrottleSliderTemplate">
+                    <Slider name="STBanTimeout_Slider" inherits="SpamThrottleSliderTemplate" minValue="0" maxValue="3600" valueStep="30">
                         <Size>
-                            <AbsDimension x="100" y="20"/>
+                            <AbsDimension x="130" y="20"/>
                         </Size>
                         <Anchors>
                             <Anchor point="TOPLEFT" relativeTo="STBanPerm_CheckButton" relativePoint="BOTTOMLEFT">
@@ -1132,6 +1306,13 @@
                                 </Offset>
                             </Anchor>
                         </Anchors>
+                    <Scripts>
+							<OnValueChanged>
+								
+								getglobal(this:GetName().."EditBox"):SetText(this:GetValue());
+							</OnValueChanged>
+							
+						</Scripts>
                     </Slider>
 
 

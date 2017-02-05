@@ -4,7 +4,7 @@
 -- Localization Strings
 
 SpamThrottleProp = {};
-SpamThrottleProp.Version = "Vanilla_1.13";
+SpamThrottleProp.Version = GetAddOnMetadata("SpamThrottle", "Version");
 SpamThrottleProp.Author = "Mopar";
 SpamThrottleProp.AppName = "SpamThrottle";
 SpamThrottleProp.Label = SpamThrottleProp.AppName .. " version " .. SpamThrottleProp.Version;
@@ -62,9 +62,10 @@ SpamThrottleConfigObjectText ={
 	STMultiWisp = "Filtering combined whispers from same player";
 	STWispMsgsOFF = "Turn whispers completely off";
 	STReverse = "Display ONLY keyword matches as a whitelist";
-	STGap = "Message Gapping (seconds)";
+	STMinimapButton = "Display Minimap button";
+	STGap = "Message Gapping (sec)";
 	STBanPerm = "Permanent";
-	STBanTimeout = "Ban Timeout (seconds)";
+	STBanTimeout = "Ban Timeout (sec)";
 }
 
 SpamThrottleConfigObjectTooltip ={
@@ -82,14 +83,15 @@ SpamThrottleConfigObjectTooltip ={
 	STMultiWisp = "Enables filtering of multiple player messages combined, whispered to you by the same player within the last few seconds.";
 	STWispMsgsOFF = "Turn whispers completely off by server command .wr at start";
 	STReverse = "Reverses the sense of SpamThrottle filtering. Messages matching a keyword will be shown, all others will be blocked.";
+	STMinimapButton = "Turn On or Off minimap button";
 	STGap = "Sets the minimum required gap between repeated messages. If the gap time has not been reached for that player and message since the last one, it will be filtered.";
 	STBanPerm = "If enabled, player bans stay in place until you remove them. Otherwise players will be removed automatically after the timeout expires for them.";
 	STBanTimeout = "Players will automatically be removed from this list after this amount of time if permanent ban (above) is not set.";
 }
 
-SpamThrottleGSC1 = { "50g", "50G", "80G" };
+SpamThrottleGSC1 = { "50g", "50G", "80G", "80g" };
 SpamThrottleGSC2 = { "\\$", "100", "\\\\", "USD", "COM", "W@W", "C@M", "G4", ">>", ">>>" };
-SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL", "POTION" };
+SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "IEVEING","LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL", "POTION","POWER", "MOK" };
 SpamThrottleGSO2 = { "PRICE", "GOLD", "CURRENCY", "MONEY", "STARS", "SKYPE", "EPIC", "DOLLARS", "PROFESSIONAL", "RELIABLE", "PROMOTION", "DELIVER", "NAXX", "GAMES", "GREETINGS", "WEBSITE", "GOID", "CQM" };
 SpamThrottleGSUC5 = { "ITEM4" }
-SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK", "MMO" }
+SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK" }
