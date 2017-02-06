@@ -607,7 +607,7 @@ end
 
 function SpamThrottleConfigFrameSaveSettings(configset)
 	for key,oldvalue in pairs(configset) do
-		if key == "Version" then
+		if key == "Version" or string.find(key,"ST") == nil then
 			-- do nothing
 			
 		elseif type(oldvalue) == "boolean"  then
