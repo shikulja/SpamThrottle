@@ -326,6 +326,7 @@ local function SpamThrottle_strNorm(msg, Author)
 	Nmsg = string.gsub(Nmsg,"/\\/\\","M");
 	Nmsg = string.gsub(Nmsg,"/-\\","A");
 	Nmsg = string.gsub(Nmsg,"!<","K");
+	Nmsg = string.gsub(Nmsg,"I<","K");
 	Nmsg = string.gsub(Nmsg,"0","O");
 	Nmsg = string.gsub(Nmsg,"3","E");
 	Nmsg = string.gsub(Nmsg,"...hic!","");

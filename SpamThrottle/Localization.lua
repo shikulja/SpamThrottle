@@ -91,7 +91,7 @@ SpamThrottleConfigObjectTooltip ={
 
 SpamThrottleGSC1 = { "50g", "50G", "80G", "80g" };
 SpamThrottleGSC2 = { "\\$", "100", "\\\\", "USD", "COM", "W@W", "C@M", "G4", ">>", ">>>" };
-SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "IEVEING","LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL", "POTION","POWER", "MOK" };
-SpamThrottleGSO2 = { "PRICE", "GOLD", "CURRENCY", "MONEY", "STARS", "SKYPE", "EPIC", "DOLLARS", "PROFESSIONAL", "RELIABLE", "PROMOTION", "DELIVER", "NAXX", "GAMES", "GREETINGS", "WEBSITE", "GOID", "CQM" };
+SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "IEVEING","LVLING", "SAFE", "SERVICE", "NOST", "COM", "SELL", "POTION","POWER"  };
+SpamThrottleGSO2 = { "PRICE", "GOLD", "CURRENCY", "MONEY", "STARS", "SKYPE", "EPIC", "DOLLARS", "PROFESSIONAL", "RELIABLE", "PROMOTION", "DELIVER", "NAXX", "GAMES", "GREETINGS", "WEBSITE", "GOID", "CQM" , "MOK", "WEBMO"};
 SpamThrottleGSUC5 = { "ITEM4" }
-SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK" }
+SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK", "WG" , "WMO"}
