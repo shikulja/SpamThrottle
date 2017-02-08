@@ -89,9 +89,9 @@ SpamThrottleConfigObjectTooltip ={
 	STBanTimeout = "Players will automatically be removed from this list after this amount of time if permanent ban (above) is not set.";
 }
 
-SpamThrottleGSC1 = { "%d[Gg]", "%d[oO][gG]" };
-SpamThrottleGSC2 = { "%$", "USD", "C[O@]M", "W@W", "G4", ">>", ">>>", "[gG][^%$]*%$", "%$[^gG]*[gG]" };
-SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "IEVEING","LVLING", "SAFE", "SERVICE", "NOST", "SELL", "POTION","POWER"  };
+SpamThrottleGSC1 = { "%d%s+[Gg]", "%d+%D?%D?%D?%D?%D?[Gg]" };
+SpamThrottleGSC2 = { "%$", "USD", "C[O@]M", "W@W", "G4", ">>", ">>>", "[gG][^%$]*%$", "%$[^gG]*[gG]", "[gG]%D?%D?%D?%D?%d-", "[lL][vV][lL]?%D?%D?%D?%D?%D?%d-" };
+SpamThrottleGSO1 = { "ACCOUNT", "CHEAP", "LEGIT", "LEVELING", "LEVELLING", "LEVLING", "LEVILING", "IEVEING","LVLING", "SAFE", "SERVICE", "NOST", "SELL", "POTION","POWER", "WOW"  };
 SpamThrottleGSO2 = { "PRICE", "GOLD", "CURRENCY", "MONEY", "STARS", "SKYPE", "EPIC", "DOLLARS", "PROFESSIONAL", "RELIABLE", "PROMOTION", "DELIVER", "NAXX", "GAMES", "GREETINGS", "WEBSITE", "GOID", "CQM" , "MOK", "WEBMO"};
 SpamThrottleGSUC5 = { "ITEM4" }
 SpamThrottleSWLO = { "OKO", "GAMES", "NOST", "COM", "TANK", "WG" , "WMO"}
