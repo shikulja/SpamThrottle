@@ -27,7 +27,7 @@ local DebugMsg = false;
 local ErrorMsg = true;
 local DebugMode = false;
 local BlockReportMode = false;
-local ScoreMsg = true;
+local ScoreMsg = false;
 
 local MessageList = {}
 local MessageCount = {}
@@ -282,7 +282,7 @@ function SpamThrottleMessageHex(visible, msg)
 	for i = 1, Nlen do
 		out = out .. string.format("%X ",string.byte(msg,i,i))
 	end
-	
+	if Prat_UrlCopy then out = Prat_UrlCopy:Link(out) end
 	if (visible) then
 		DEFAULT_CHAT_FRAME:AddMessage("SpamThrottle: " .. out, 0.5, 0.5, 1);
 	end
