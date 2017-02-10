@@ -27,6 +27,7 @@ local DebugMsg = false;
 local ErrorMsg = true;
 local DebugMode = false;
 local BlockReportMode = false;
+local ScoreMsg = true;
 
 local MessageList = {}
 local MessageCount = {}
@@ -274,6 +275,18 @@ function SpamThrottleMessage(visible, ...)
 	end
 end
 
+
+function SpamThrottleMessageHex(visible, msg)
+	local Nlen = string.len(msg);
+	local out = ""
+	for i = 1, Nlen do
+		out = out .. string.format("%X ",string.byte(msg,i,i))
+	end
+	
+	if (visible) then
+		DEFAULT_CHAT_FRAME:AddMessage("SpamThrottle: " .. out, 0.5, 0.5, 1);
+	end
+end
 
 --============================
 --= Delay the hook of the chat messaging function
@@ -994,6 +1007,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 		local testval = SpamThrottle_strNorm(value,"");
 		if (string.find(NormalizedMessage,testval) ~= nil) then
 			theScore = theScore + 2
+			SpamThrottleMessage(ScoreMsg, "Match : ".. testval)
 		end
 	end
 	
@@ -1001,24 +1015,28 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 		local testval = SpamThrottle_strNorm(value,"");
 		if (string.find(NormalizedMessage,testval) ~= nil) then
 			theScore = theScore + 1
+			SpamThrottleMessage(ScoreMsg, "Match : ".. testval)
 		end
 	end
 	
 	for key, value in pairs(SpamThrottleGSC2) do
 		if (string.find(msg,value) ~= nil) then
 			theScore = theScore + 2
+			SpamThrottleMessage(ScoreMsg, "Match : ".. value)
 		end
 	end
 	
 	for key, value in pairs(SpamThrottleGSC1) do
 		if (string.find(msg,value) ~= nil) then
 			theScore = theScore + 1
+			SpamThrottleMessage(ScoreMsg, "Match : ".. value)
 		end
 	end
 	
 	for key, value in pairs(SpamThrottleGSUC5) do
 		if (string.find(string.upper(msg),value) ~= nil) then
 			theScore = theScore + 5
+			SpamThrottleMessage(ScoreMsg, "Match : ".. value)
 		end
 	end
 
@@ -1028,7 +1046,8 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 			theScore = theScore + 100
 		end
 	end
-	SpamThrottleMessage(DebugMsg, "Score : "..theScore.." : "..Author.." : "..msg.." : "..NormalizedMessage);
+	SpamThrottleMessage(ScoreMsg, "Score : "..theScore.." : "..Author.." : "..msg.." : "..NormalizedMessage);
+	SpamThrottleMessageHex(ScoreMsg, msg);
 	
 	if theScore > theThreshold then
 		BlockFlag = true;
