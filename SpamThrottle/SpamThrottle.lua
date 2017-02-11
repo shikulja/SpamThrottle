@@ -1,7 +1,7 @@
 --[[
 	SpamThrottle - Remove redundant and annoying chat messages
-	Version:	Vanilla 1.15
-	Date:		05.02.2017
+	Version:	Vanilla 1.16
+	Date:		11.02.2017
 	Author:	Mopar
 	This is a port of SpamThrottle to work with Vanilla WoW, release 1.12.1 and 1.12.2.
 	I am also the author of the retail version (no longer maintained).
@@ -28,6 +28,7 @@ local ErrorMsg = true;
 local DebugMode = false;
 local BlockReportMode = false;
 local ScoreMsg = false;
+local debugWin = 0; 
 
 local MessageList = {}
 local MessageCount = {}
@@ -260,6 +261,17 @@ end
 --= Message function that prints variable to default chat frame
 --============================
 function SpamThrottleMessage(visible, ...)
+	debugWin = 0
+	local name, shown;
+	for i=1, NUM_CHAT_WINDOWS do
+		name,_,_,_,_,_,shown = GetChatWindowInfo(i);
+		if (string.lower(name) == "stdebug") then debugWin = i; break; end
+	end
+	if (debugWin == 0) then 
+		debugWin = DEFAULT_CHAT_FRAME
+	else
+		debugWin = getglobal("ChatFrame"..debugWin)
+	end
 	for i = 1,arg.n do
 		if type(arg[i]) == "nil" then
 			arg[i] = "(nil)";
@@ -271,10 +283,9 @@ function SpamThrottleMessage(visible, ...)
 	end
 
 	if (visible) then
-		DEFAULT_CHAT_FRAME:AddMessage("SpamThrottle: " .. table.concat (arg, " "), 0.5, 0.5, 1);
+		debugWin:AddMessage("SpamThrottle: " .. table.concat (arg, " "), 0.5, 0.5, 1);
 	end
 end
-
 
 function SpamThrottleMessageHex(visible, msg)
 	local Nlen = string.len(msg);
@@ -284,7 +295,7 @@ function SpamThrottleMessageHex(visible, msg)
 	end
 	if Prat_UrlCopy then out = Prat_UrlCopy:Link(out) end
 	if (visible) then
-		DEFAULT_CHAT_FRAME:AddMessage("SpamThrottle: " .. out, 0.5, 0.5, 1);
+		debugWin:AddMessage("SpamThrottle: " .. out, 0.5, 0.5, 1);
 	end
 end
 
@@ -1107,6 +1118,15 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 				end
 			end
 		end
+		for key, value in pairs(MessageTime["WIM_Core"]) do
+			if time() - LastPurgeTime > 300 then
+				SpamThrottleMessage(DebugMsg,"Removing key ",key," as it is older than timeout.");
+				MessageList["WIM_Core"][key] = nil;
+				MessageTime["WIM_Core"][key] = nil;
+				MessageLatestTime["WIM_Core"][key] = nil;
+				MessageCount["WIM_Core"][key] = nil;
+			end
+		end
 		if not multiCheck then
 			local remove = {}
 			for playerName, value in pairs(MultiMessageCache) do
@@ -1171,22 +1191,26 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 	end
 
 	local frameName = this:GetName()
-	MessageLatestTime[frameName][NormalizedMessage] = time();
+	
 	
 	if not multiCheck then
-	if (event == "CHAT_MSG_YELL" or event == "CHAT_MSG_SAY" or event == "CHAT_MSG_WHISPER") then
-		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][NormalizedMessage] ~= nil) then	-- this should always be true, but worth checking to avoid an error
+		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][NormalizedMessage] ~= nil) then	-- If duplicate message filter enabled AND we have seen this exact text before
+		
+		--	if (event == "CHAT_MSG_YELL" or event == "CHAT_MSG_SAY" or event == "CHAT_MSG_WHISPER") then
 			if time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
 				BlockFlag = true;
 			end
+				
+		--	else -- it is a channel message, handled differently than yell msgs (or they were)
+				
+		--			if MessageTime[frameName][NormalizedMessage] and time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
+		--				BlockFlag = true;
+		--			end
+				
+		--	end
+		
 		end
-	else -- it is a channel message, handled differently than yell msgs (or they were)
-		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][NormalizedMessage] ~= nil) then	-- If duplicate message filter enabled AND we have seen this exact text before
-			if MessageTime[frameName][NormalizedMessage] and time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
-				BlockFlag = true;
-			end
-		end
-	end
+		MessageLatestTime[frameName][NormalizedMessage] = time();
 	end
 
 	if BlockFlag then
