@@ -31,19 +31,10 @@ local ScoreMsg = false;
 local debugWin = 0; 
 
 local MessageList = {}
-local MessageCount = {}
-local MessageTime = {}
-local MessageLatestTime = {}
 for i=1, NUM_CHAT_WINDOWS do
 	MessageList["ChatFrame"..i] = {}
-	MessageTime["ChatFrame"..i] = {}
-	MessageLatestTime["ChatFrame"..i] = {}
-	MessageCount["ChatFrame"..i] = {}
 end
 MessageList["WIM_Core"] = {}
-MessageTime["WIM_Core"] = {}
-MessageLatestTime["WIM_Core"] = {}
-MessageCount["WIM_Core"] = {}
 local WIM_Present = false;
 local MultiMessageCache = {}
 local MultiLastMsg = {}
@@ -460,6 +451,19 @@ function SpamThrottle_TableTypeMatch(table1, table2)
 		end
 	end
 	return true;
+end
+
+
+local function StringHash(text)
+	local counter = 1
+  local len = string.len(text)
+  for i = 1, len, 3 do 
+    counter = math.mod(counter*8161, 4294967279) +  -- 2^32 - 17: Prime!
+  	  (string.byte(text,i)*16776193) +
+  	  ((string.byte(text,i+1) or (len-i+256))*8372226) +
+  	  ((string.byte(text,i+2) or (len-i+256))*3932164)
+  end
+  return math.mod(counter, 4294967291) -- 2^32 - 5: Prime (and different from the prime in the loop)
 end
 
 
@@ -954,21 +958,22 @@ end
 --= RecordMessage - save it in our database
 --============================
 function SpamThrottle_RecordMessage(msg,Author)
-	if (playername ~= "") then
 		local Msg = SpamThrottle_strNorm(msg,Author);
+		local hash = StringHash(Msg);
 		
-		SpamThrottleMessage(DebugMsg,"received normalized message ",Msg);
+		SpamThrottleMessage(false,"MSG: ",Msg);
+		--SpamThrottleMessage(true,"MSG: ",StringHash(Msg));
 		
 		local frameName = this:GetName()
-		if (MessageList[frameName][Msg] == nil) then  -- If we have NOT seen this text before
+		if (MessageList[frameName][hash] == nil) then  -- If we have NOT seen this text before
 			UniqueCount = UniqueCount + 1
-			MessageList[frameName][Msg] = true;
-			MessageCount[frameName][Msg] = 1;
-			MessageTime[frameName][Msg] = time();
-			MessageLatestTime[frameName][Msg] = time();
+			MessageList[frameName][hash] = {
+				count = 1,
+				firstTime = time(),
+				lastTime =time()
+			}
 		else
-			MessageCount[frameName][Msg] = (MessageCount[frameName][Msg] or 0) + 1;
-		end		
+			MessageList[frameName][hash].count = MessageList[frameName][hash].count  + 1;
 	end
 end
 
@@ -1064,7 +1069,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
 		BlockFlag = true;
 		SpamThrottle_AddPlayerban(Author);
 		SpamThrottle_PlayerbanList_Update();
-		SpamThrottleMessage(false, "Blocked "..Author.." gold advertising: "..msg);
+		SpamThrottleMessage(ScoreMsg, "Blocked "..Author.." gold advertising: "..msg);
 	end
 	
 	return BlockFlag;
@@ -1105,32 +1110,21 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 		if (testval3 ~= "" and string.find(normChannel,testval3) ~= nil) then return 0; end;
 	end
 
-	if time() - LastPurgeTime > SpamThrottle_Config.STGap then
+	if time() - LastPurgeTime > 5 then
 		SpamThrottleMessage(DebugMsg,"purging database to free memory");
-		for i=1, NUM_CHAT_WINDOWS do
-			for key, value in pairs(MessageTime["ChatFrame"..i]) do
-				if time() - LastPurgeTime > 300 then
+		for chan, msgs in pairs(MessageList) do
+			for key, value in pairs(msgs) do
+				if time() - value.firstTime > SpamThrottle_Config.STGap then
 					SpamThrottleMessage(DebugMsg,"Removing key ",key," as it is older than timeout.");
-					MessageList["ChatFrame"..i][key] = nil;
-					MessageTime["ChatFrame"..i][key] = nil;
-					MessageLatestTime["ChatFrame"..i][key] = nil;
-					MessageCount["ChatFrame"..i][key] = nil;
+					MessageList[chan][key] = nil;
 				end
 			end
 		end
-		for key, value in pairs(MessageTime["WIM_Core"]) do
-			if time() - LastPurgeTime > 300 then
-				SpamThrottleMessage(DebugMsg,"Removing key ",key," as it is older than timeout.");
-				MessageList["WIM_Core"][key] = nil;
-				MessageTime["WIM_Core"][key] = nil;
-				MessageLatestTime["WIM_Core"][key] = nil;
-				MessageCount["WIM_Core"][key] = nil;
-			end
-		end
+		
 		if not multiCheck then
 			local remove = {}
 			for playerName, value in pairs(MultiMessageCache) do
-				if time() - value.lastMessage > 10000 then
+				if time() - value.lastMessage > 30 then
 					SpamThrottleMessage(DebugMsg,"Removing player ",playerName," from multi-message cache (timeout).");
 					table.insert(remove, playerName)
 				end
@@ -1194,23 +1188,16 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 	
 	
 	if not multiCheck then
-		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][NormalizedMessage] ~= nil) then	-- If duplicate message filter enabled AND we have seen this exact text before
+		local hash = StringHash(NormalizedMessage);
+		if (SpamThrottle_Config.STDupFilter and MessageList[frameName][hash] ~= nil) then	-- If duplicate message filter enabled AND we have seen this exact text before
 		
-		--	if (event == "CHAT_MSG_YELL" or event == "CHAT_MSG_SAY" or event == "CHAT_MSG_WHISPER") then
-			if time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
+					if time() - MessageList[frameName][hash].firstTime <= SpamThrottle_Config.STGap then
 				BlockFlag = true;
+						SpamThrottleMessage(DebugMsg, "DUP:", msg);
 			end
 				
-		--	else -- it is a channel message, handled differently than yell msgs (or they were)
-				
-		--			if MessageTime[frameName][NormalizedMessage] and time() - MessageTime[frameName][NormalizedMessage] <= SpamThrottle_Config.STGap then
-		--				BlockFlag = true;
-		--			end
-				
-		--	end
-		
 		end
-		MessageLatestTime[frameName][NormalizedMessage] = time();
+				
 	end
 
 	if BlockFlag then
@@ -1242,6 +1229,7 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 		return 0
 	end
 
+	local frameName = this:GetName()
 	if MultiMessageCache[Author] == nil then
 		MultiMessageCache[Author] = {
 			lastMessage = 0,
@@ -1249,26 +1237,19 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 		}
 	end
 	local playerCache = MultiMessageCache[Author]
-	playerCache.lastMessage = time()
-	if MultiLastMsg.time and (MultiLastMsg.time - playerCache.lastMessage < 2) and MultiLastMsg.msg == msg and MultiLastMsg.Author == Author then 
-		return 0;
-	end
+
 	local payload = {
 		msg = msg,
 		event = event,
 		channel = channel,
 		time = playerCache.lastMessage
 	}
-	table.insert(playerCache.history, payload)
+	if playerCache.history[frameName] == nil then playerCache.history[frameName]={} end
+	table.insert(playerCache.history[frameName], payload)
 
-	MultiLastMsg = {
-		Author = Author,
-		msg = msg,
-		time = playerCache.lastMessage
-	}
 	-- concatenate all messages sent in the past few seconds
 	local multiMsg = ""
-	for i, pl in ipairs(playerCache.history) do
+	for i, pl in ipairs(playerCache.history[frameName]) do
 		SpamThrottleMessage(false, "cache "..i.." : "..pl.msg)
 		if time() - pl.time < 20 then
 			multiMsg = string.format("%s%s", multiMsg, pl.msg)
@@ -1293,6 +1274,7 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 	local hideColor = "|cFF5C5C5C";
 	local oppFacColor = "|cA0A00000";
 	local theColor = hideColor;
+	local frameName = this:GetName()
 
 	if SpamThrottle_Config == nil then SpamThrottle_init(); end
 	
@@ -1313,7 +1295,10 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 	end
 			
 	if arg2 then -- if this is not a server message
-		if (event == "CHAT_MSG_CHANNEL" or (event == "CHAT_MSG_YELL" and SpamThrottle_Config.STYellMsgs) or (event == "CHAT_MSG_SAY" and SpamThrottle_Config.STSayMsgs) or (event == "CHAT_MSG_WHISPER" and SpamThrottle_Config.STWispMsgs)) then
+		if (event == "CHAT_MSG_CHANNEL" or (event == "CHAT_MSG_YELL" and SpamThrottle_Config.STYellMsgs) or (event == "CHAT_MSG_SAY" and SpamThrottle_Config.STSayMsgs) or (event == "CHAT_MSG_WHISPER" and SpamThrottle_Config.STWispMsgs) or event == "CHAT_MSG_EMOTE" 
+		or event == "CHAT_MSG_TEXT_EMOTE") then
+			
+			
 			
 			-- Code to handle message goes here. Just return if we are going to ignore it.
 			local channelFound
@@ -1326,20 +1311,24 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 				end
 				if not channelFound then return end
 			end
-			
+			SpamThrottleMessage(false, GetTime(), frameName,event,arg1,arg2,arg3,arg4,arg5,arg6,arg7,arg8,arg9);
 			if arg1 and arg2 then	-- only execute this code once although event handler is called many times per message
 				local NormalizedMessage = SpamThrottle_strNorm(arg1, arg2);
 				--if time() == MessageLatestTime[NormalizedMessage] then return end;
 			end
 
+			
+
 			local BlockType = SpamThrottle_ShouldBlock(arg1,arg2,event,arg9);
-			SpamThrottle_RecordMessage(arg1,arg2);
+			
 
 			if SpamThrottle_Config.STMultiWisp and (event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_CHANNEL" ) and not SpamThrottle_Config.STReverse and not WIM_msg then
 				if BlockType == 0 then
 					BlockType = SpamThrottle_ShouldMultiBlock(arg1,arg2,event,arg9);
 				end
 			end
+			
+			SpamThrottle_RecordMessage(arg1,arg2);
 			
 			if BlockType ~= 0 then
 				SpamThrottle_LastPlayerFiltered = arg2
@@ -1446,9 +1435,7 @@ SlashCmdList["SPTHRTL"] = function(_msg)
 				DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFChinese/Japanese/Korean|cFFFFFFFF messages are now allowed.");
 		elseif ("RESET" == cmd) then -- reset the unique message list
 			MessageList = {}
-			MessageCount = {}
-			MessageTime = {}
-			MessageLatestTime = {}
+		
 			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFReset|cFFFFFFFF of unique message database complete.");
 		elseif (tonumber(_msg) ~= nil) then
 			local gapseconds = tonumber(_msg);
