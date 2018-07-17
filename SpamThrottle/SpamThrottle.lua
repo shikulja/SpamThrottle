@@ -109,6 +109,7 @@ SpamThrottle_UTF8Convert[tonumber("39F",16)] = "O";
 SpamThrottle_UTF8Convert[tonumber("3A1",16)] = "P";
 SpamThrottle_UTF8Convert[tonumber("3A4",16)] = "T";
 SpamThrottle_UTF8Convert[tonumber("3A5",16)] = "Y";
+SpamThrottle_UTF8Convert[tonumber("3A6",16)] = "O";
 SpamThrottle_UTF8Convert[tonumber("3A7",16)] = "X";
 SpamThrottle_UTF8Convert[tonumber("405",16)] = "S";
 SpamThrottle_UTF8Convert[tonumber("406",16)] = "I";
@@ -345,11 +346,18 @@ local function SpamThrottle_strNorm(msg, Author)
 	Nmsg = string.gsub(Nmsg,"0","O");
 	Nmsg = string.gsub(Nmsg,"3","E");
 	Nmsg = string.gsub(Nmsg,"...hic!","");
+	Nmsg = string.upper(Nmsg);
+	
+	Nmsg = string.gsub(Nmsg,"\|HITEM[^|]+\|H","");
+	Nmsg = string.gsub(Nmsg,"\|C%S%S%S%S%S%S%S%S","");
+	Nmsg = string.gsub(Nmsg,"\|H","");
+	Nmsg = string.gsub(Nmsg,"\|R","");
+	
 		Nmsg = string.gsub(Nmsg,"%d","");
 		Nmsg = string.gsub(Nmsg,"%c","");
 		Nmsg = string.gsub(Nmsg,"%p","");
 		Nmsg = string.gsub(Nmsg,"%s","");
-	Nmsg = string.upper(Nmsg);
+	
 	Nmsg = string.gsub(Nmsg,"SH","S");
 	Nmsg = string.gsub(Nmsg,"RN","M");
 	Nmsg = string.gsub(Nmsg,"VV","W");
@@ -1011,10 +1019,12 @@ end
 --= Returns TRUE if blocked
 --= Returns FALSE if clear
 --============================
-function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author)
+function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author,multiCheck)
 	local theScore = 0;
 	local theThreshold = 4;
 	local BlockFlag = false;
+	
+	ScoreMsg = multiCheck
 	
 	local index = table.find(SpamThrottle_PlayerFilterList,string.upper(Author));
 	if index then return true; end
@@ -1139,7 +1149,7 @@ function SpamThrottle_ShouldBlock(msg,Author,event,channel,multiCheck)
 	if string.find(msg, SpamThrottleGeneralMask) then BlockFlag = true; end
 	
 	if multiCheck then SpamThrottleMessage(false, "multiCheck") end
-	if SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author) then BlockFlag = true; end
+	if SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author,multiCheck) then BlockFlag = true; end
 
 	if not SpamThrottle_Config.STBanPerm then
 		if time() - LastAuditTime > PlayerListAuditGap then
@@ -1228,7 +1238,6 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 	if (SpamThrottle_Config.STActive == false or Author == UnitName("player")) then -- If filter not active or it's our message, just let it go thru
 		return 0
 	end
-
 	local frameName = this:GetName()
 	if MultiMessageCache[Author] == nil then
 		MultiMessageCache[Author] = {
@@ -1242,22 +1251,30 @@ function SpamThrottle_ShouldMultiBlock(msg,Author,event,channel)
 		msg = msg,
 		event = event,
 		channel = channel,
-		time = playerCache.lastMessage
+		time = time()
+		--playerCache.lastMessage
 	}
 	if playerCache.history[frameName] == nil then playerCache.history[frameName]={} end
 	table.insert(playerCache.history[frameName], payload)
 
 	-- concatenate all messages sent in the past few seconds
 	local multiMsg = ""
+	local numMsg = 0
 	for i, pl in ipairs(playerCache.history[frameName]) do
-		SpamThrottleMessage(false, "cache "..i.." : "..pl.msg)
-		if time() - pl.time < 20 then
+--		SpamThrottleMessage(true, "cache "..i.." : "..pl.msg)
+		local dTime = time() - pl.time
+--		SpamThrottleMessage(true,"dTime: "..dTime)
+		if dTime < 20 then
 			multiMsg = string.format("%s%s", multiMsg, pl.msg)
+			numMsg = numMsg + 1
 		end
 	end
 	-- check if combined message should be blocked
-	local ShouldBlock = SpamThrottle_ShouldBlock(multiMsg,Author,event,channel,true)
-
+	local ShouldBlock = 0
+	if numMsg > 1 then
+		--SpamThrottleMessage(true, "MultiMSG:"..multiMsg)
+		ShouldBlock = SpamThrottle_ShouldBlock(multiMsg,Author,event,channel,true)
+	end
 	return ShouldBlock
 end
 
@@ -1275,7 +1292,6 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 	local oppFacColor = "|cA0A00000";
 	local theColor = hideColor;
 	local frameName = this:GetName()
-
 	if SpamThrottle_Config == nil then SpamThrottle_init(); end
 	
 	if not SpamThrottle_Config.STActive then
@@ -1286,7 +1302,6 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 		end
 		return;
 	end;
-
 	if (SpamThrottle_Config.STCtrlMsgs) then -- Remove the "has invited you to join the channel"-spam and left/joined channel spam and a few other notification messages
 		if (event == "CHANNEL_INVITE_REQUEST" or event == "CHAT_MSG_CHANNEL_JOIN" or event == "CHAT_MSG_CHANNEL_LEAVE" or event == "CHAT_MSG_CHANNEL_NOTICE" or event == "CHAT_MSG_CHANNEL_NOTICE_USER") then		
   			
@@ -1318,7 +1333,6 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 			end
 
 			
-
 			local BlockType = SpamThrottle_ShouldBlock(arg1,arg2,event,arg9);
 			
 
@@ -1367,7 +1381,11 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 						if event == "CHAT_MSG_WHISPER" then
 							CleanText = theColor .. "[" .. arg2 .. "] whispers: " .. CleanText .. "|r";
 						else
-							CleanText = theColor .. "[" .. arg4 .. "] [" .. arg2 .. "]: " .. CleanText .. "|r";
+							if event == "CHAT_MSG_EMOTE" then
++								CleanText = theColor .. arg2 .. " " .. CleanText .. "|r";
++							else
++								CleanText = theColor .. "[" .. arg4 .. "] [" .. arg2 .. "]: " .. CleanText .. "|r";
++							end
 						end
 					end
 				end
@@ -1450,7 +1468,6 @@ SlashCmdList["SPTHRTL"] = function(_msg)
 			
 		elseif ("TEST" == cmd) then
 			-- Placeholder for testing
-		
 		else -- Just show the configuration frame
 			SpamThrottleConfigFrame:Show();
 		end
