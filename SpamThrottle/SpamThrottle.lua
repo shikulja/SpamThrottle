@@ -1382,10 +1382,10 @@ function SpamThrottle_ChatFrame_OnEvent(event, WIM_msg)
 							CleanText = theColor .. "[" .. arg2 .. "] whispers: " .. CleanText .. "|r";
 						else
 							if event == "CHAT_MSG_EMOTE" then
-+								CleanText = theColor .. arg2 .. " " .. CleanText .. "|r";
-+							else
-+								CleanText = theColor .. "[" .. arg4 .. "] [" .. arg2 .. "]: " .. CleanText .. "|r";
-+							end
+								CleanText = theColor .. arg2 .. " " .. CleanText .. "|r";
+						else
+								CleanText = theColor .. "[" .. arg4 .. "] [" .. arg2 .. "]: " .. CleanText .. "|r";
+							end
 						end
 					end
 				end
