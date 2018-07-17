@@ -1024,7 +1024,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author,multiCheck)
 	local theThreshold = 4;
 	local BlockFlag = false;
 	
-	ScoreMsg = multiCheck
+--	ScoreMsg = multiCheck
 	
 	local index = table.find(SpamThrottle_PlayerFilterList,string.upper(Author));
 	if index then return true; end
