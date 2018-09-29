@@ -1068,7 +1068,7 @@ function SpamThrottle_SpamScoreBlock(msg,NormalizedMessage,Author,multiCheck)
 
 	for key, value in pairs(SpamThrottleSWLO) do
 		local testval = SpamThrottle_strNorm(value,Author);
-		if (string.find(NormalizedMessage,testval) ~= nil and string.len(NormalizedMessage) == string.len(testval)) then
+		if (string.find(NormalizedMessage,testval) ~= nil) then
 			theScore = theScore + 100
 		end
 	end
