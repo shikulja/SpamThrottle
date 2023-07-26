@@ -18,6 +18,31 @@ SpamThrottleStatus = "SpamThrottle Status & Gapping";
 SpamThrottleKeywords = "Filtering Keywords";
 SpamThrottlePlayerbans = "Filtered Player Names (local bans)";
 SpamThrottleGeneralMask = "<<<----[%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d]";
+SpamThrottleAdd = "Add";
+SpamThrottleAddBan = "Add Ban";
+SpamThrottleRemove = "Remove";
+
+SpamThrottleMessageHook = "Chat message hook is now enabled.";
+SpamThrottleLastPlayerBannedText = "Last player BANed: ";
+SpamThrottleLastPlayerFilteredText = "Last player filtered: ";
+
+SpamThrottleCmdMsg = {
+confirmMsgDisabled = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFilter Disabled|cFFFFFFFF";
+confirmMsgEnabled = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFilter Enabled";
+confirmMsgColorMode = " (color mode)|cFFFFFFFF.";
+confirmMsgHideMode = " (hide mode)|cFFFFFFFF.";
+COLOR = "|cFFFFFFFFSpamThrottle: |cFF00BEFFColor|cFFFFFFFF mode enabled.";
+HIDE = "|cFFFFFFFFSpamThrottle: |cFF00BEFFHide|cFFFFFFFF mode enabled.";
+FUZZY = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFuzzy|cFFFFFFFF match filter enabled.";
+NOFUZZY = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFuzzy|cFFFFFFFF match filter disabled - strict match mode.";
+CBLOCK = "|cFFFFFFFFSpamThrottle: |cFF00BEFFChinese/Japanese/Korean|cFFFFFFFF messages are now blocked.";
+NOCBLOCK = "|cFFFFFFFFSpamThrottle: |cFF00BEFFChinese/Japanese/Korean|cFFFFFFFF messages are now allowed.";
+RESET = "|cFFFFFFFFSpamThrottle: |cFF00BEFFReset|cFFFFFFFF of unique message database complete.";
+GappingSetTo = "|cFFFFFFFFSpamThrottle: gapping now set to |cFF00BEFF";
+	GappingSeconds = "|cFFFFFFFF seconds.";
+GappingCanOnlySet = "|cFFFFFFFFSpamThrottle: gapping value can only be set from 0 to 10000 seconds.";
+HELP = "Type /st or /spamthrottle to display the configuration options menu.";
+}
 
 SpamThrottleChatMsg = {
 	WelcomeMsg = SpamThrottleProp.CleanLabel .. " for reducing chat spam (Slash commands: /spamthrottle or /st)";
@@ -110,6 +135,31 @@ if GetLocale() == "ruRU" then
 	SpamThrottleKeywords = "Фильтрация ключевых слов";
 	SpamThrottlePlayerbans = "Фильтрация имен игроков (местные запреты)";
 	SpamThrottleGeneralMask = "<<<----[%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d][%a%d]";
+	SpamThrottleAdd = "Добавить";
+	SpamThrottleAddBan = "Добавить в бан";
+	SpamThrottleRemove = "Удалить";
+	
+	SpamThrottleMessageHook = "Перехват сообщений чата включен.";
+	SpamThrottleLastPlayerBannedText = "Последний заБАНенный игрок: ";
+	SpamThrottleLastPlayerFilteredText = "Последний отфильтрованный игрок: ";
+	
+	SpamThrottleCmdMsg = {
+	confirmMsgDisabled = "|cFFFFFFFFSpamThrottle: |cFF00BEFFФильтр отключен|cFFFFFFFF";
+	confirmMsgEnabled = "|cFFFFFFFFSpamThrottle: |cFF00BEFFФильтр включен";
+	confirmMsgColorMode = " (цветной режим)|cFFFFFFFF.";
+	confirmMsgHideMode = " (скрытый режим)|cFFFFFFFF.";
+	COLOR = "|cFFFFFFFFSpamThrottle: |cFF00BEFFЦветной|cFFFFFFFF режим включен.";
+	HIDE = "|cFFFFFFFFSpamThrottle: |cFF00BEFFСкрытый|cFFFFFFFF режим включен.";
+	FUZZY = "|cFFFFFFFFSpamThrottle: |cFF00BEFFНечеткий|cFFFFFFFF фильтр совпадений включен.";
+	NOFUZZY = "|cFFFFFFFFSpamThrottle: |cFF00BEFFНечеткий|cFFFFFFFF фильтр совпадений отключен - режим строгого соответствия.";
+	CBLOCK = "|cFFFFFFFFSpamThrottle: |cFF00BEFFСообщения на китайском/японском/корейском|cFFFFFFFF заблокированы.";
+	NOCBLOCK = "|cFFFFFFFFSpamThrottle: |cFF00BEFFСообщения на китайском/японском/корейском|cFFFFFFFF разрешены.";
+	RESET = "|cFFFFFFFFSpamThrottle: |cFF00BEFFСброс|cFFFFFFFF базы данных уникальных сообщений завершен.";
+	GappingSetTo = "|cFFFFFFFFSpamThrottle: зазор установлен на |cFF00BEFF";
+		GappingSeconds = "|cFFFFFFFF секунд.";
+	GappingCanOnlySet = "|cFFFFFFFFSpamThrottle: зазор может быть установлен только от 0 до 10000 секунд.";
+	HELP = "Введите /st или /spamthrottle для отображения меню конфигурации.";
+	}
 	
 	SpamThrottleChatMsg = {
 		WelcomeMsg = SpamThrottleProp.CleanLabel .. " для уменьшения спама чата (Команды: /spamthrottle или /st)";

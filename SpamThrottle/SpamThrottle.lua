@@ -220,7 +220,7 @@ table.insert(UnitPopupMenus["FRIEND"], 1, "SPAMTHROTTLE_ADD_PLAYERBAN");
 table.insert(UnitPopupMenus["FRIEND"], 2, "SPAMTHROTTLE_REMOVE_PLAYERBAN");
 
 local SpamThrottleUnitPopup_OnClick = UnitPopup_OnClick;
-function UnitPopup_OnClick(self)	
+function UnitPopup_OnClick(self)
 	local theFrame = UIDROPDOWNMENU_INIT_MENU
 	local theName = FriendsDropDown.name;
 	local theButton = this.value;
@@ -309,7 +309,7 @@ function UFOverHookEvents()
 			WIM_Present = true;
 			SpamThrottle_SetAlphas(SpamThrottle_Config.STActive);
 		end
-		SpamThrottleMessage(true,"Chat message hook is now enabled.");
+		SpamThrottleMessage(true,SpamThrottleMessageHook);
     	UFStartTime = nil;
 		UFInitialized = true;
 		this:Hide();
@@ -398,7 +398,7 @@ local function SpamThrottle_strNorm(msg, Author)
 	Bmsg = "";
 
 	for i = 1, string.len(Nmsg) do			-- for c in string.gmatch(Nmsg,"%u") do
-		c = string.sub(Nmsg,i,i)	
+		c = string.sub(Nmsg,i,i)
 		if (c ~= lastc) then
 			Bmsg = Bmsg .. c;
 		end
@@ -541,8 +541,8 @@ function SpamThrottle_OnEvent()
 end
 
 function SpamThrottleCreateTooltip(STTooltip)
-	if SpamThrottle_LastPlayerBanned ~= " " then STTooltip:AddLine("Last player BANed: ".. SpamThrottle_LastPlayerBanned , 0, 1, 0); end
-	if SpamThrottle_LastPlayerFiltered ~= " " then STTooltip:AddLine("Last player filtered: ".. SpamThrottle_LastPlayerFiltered , 0, 1, 0); end
+	if SpamThrottle_LastPlayerBanned ~= " " then STTooltip:AddLine(SpamThrottleLastPlayerBannedText .. SpamThrottle_LastPlayerBanned , 0, 1, 0); end
+	if SpamThrottle_LastPlayerFiltered ~= " " then STTooltip:AddLine(SpamThrottleLastPlayerFilteredText .. SpamThrottle_LastPlayerFiltered , 0, 1, 0); end
 end
 	
 --============================
@@ -678,7 +678,7 @@ function SpamThrottleConfigFrameSaveSettings(configset)
 				if (oldvalue ~= newvalue) then
 					configset[key] = newvalue;
 					SpamThrottleMessage(DebugMsg, key, "has been updated from", oldvalue,"to", newvalue)
-				end					
+				end
 			else
 				SpamThrottleMessage(ErrorMsg, SpamThrottleChatMsg.ObjectSaveFail, key, "(", oldvalue, ")");
 			end
@@ -773,7 +773,7 @@ function SpamThrottle_ToggleWispersOFF(myStatus)
 	end
 end
 
-function SpamThrottle_SetBanSliderAlpha(myStatus)	
+function SpamThrottle_SetBanSliderAlpha(myStatus)
 	if myStatus then
 		STBanTimeout_Slider:SetAlpha(0.5);
 	else
@@ -1419,52 +1419,52 @@ end
 --============================
 SlashCmdList["SPTHRTL"] = function(_msg)
 	if (_msg) then
-		local _, _, cmd, arg1 = string.find(string.upper(_msg), "([%w]+)%s*(.*)$");		
+		local _, _, cmd, arg1 = string.find(string.upper(_msg), "([%w]+)%s*(.*)$");
 		if ("OFF" == cmd) then -- disable the filter
-			local confirmMsg = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFilter Disabled|cFFFFFFFF"
+			local confirmMsg = SpamThrottleCmdMsg.confirmMsgDisabled
 			SpamThrottle_Config.STActive = false;
 			DEFAULT_CHAT_FRAME:AddMessage(confirmMsg);
 		elseif ("ON" == cmd) then -- enable the filter
-			local confirmMsg = "|cFFFFFFFFSpamThrottle: |cFF00BEFFFilter Enabled"
+			local confirmMsg = SpamThrottleCmdMsg.confirmMsgEnabled
 			SpamThrottle_Config.STActive = true;
 			if SpamThrottle_Config.STColor then
-				confirmMsg = confirmMsg .. " (color mode)|cFFFFFFFF."
+				confirmMsg = confirmMsg .. SpamThrottleCmdMsg.confirmMsgColorMode
 			else
-				confirmMsg = confirmMsg .. " (hide mode)|cFFFFFFFF."
+				confirmMsg = confirmMsg .. SpamThrottleCmdMsg.confirmMsgHideMode
 			end
 			DEFAULT_CHAT_FRAME:AddMessage(confirmMsg);
 		elseif ("COLOR" == cmd) then -- change the spam to a darker color to make it easy for your eyes to skip (but you still see it)
 			SpamThrottle_Config.STColor = true;
-			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFColor|cFFFFFFFF mode enabled.");
+			DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.COLOR);
 		elseif ("HIDE" == cmd) then -- completely hide the spam
 			SpamThrottle_Config.STColor = false;
-			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFHide|cFFFFFFFF mode enabled.");
+			DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.HIDE);
 		elseif ("FUZZY" == cmd) then -- enable the fuzzy matching filter (default)
 			SpamThrottle_Config.STFuzzy = true;
-			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFFuzzy|cFFFFFFFF match filter enabled.");
+			DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.FUZZY);
 		elseif ("NOFUZZY" == cmd) then -- disable the fuzzy matching filter, instead requiring exact matches
 			SpamThrottle_Config.STFuzzy = false;
-			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFFuzzy|cFFFFFFFF match filter disabled - strict match mode.");
+			DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.NOFUZZY);
 		elseif ("CBLOCK" == cmd) then -- block messages with chinese/japanese/korean characters
 				SpamThrottle_Config.STChinese = true;
-				DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFChinese/Japanese/Korean|cFFFFFFFF messages are now blocked.");
+				DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.CBLOCK);
 		elseif ("NOCBLOCK" == cmd) then -- allow messages with chinese/japanese/korean characters
 				SpamThrottle_Config.STChinese = false;
-				DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFChinese/Japanese/Korean|cFFFFFFFF messages are now allowed.");
+				DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.NOCBLOCK);
 		elseif ("RESET" == cmd) then -- reset the unique message list
 			MessageList = {}
 		
-			DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: |cFF00BEFFReset|cFFFFFFFF of unique message database complete.");
+			DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.RESET);
 		elseif (tonumber(_msg) ~= nil) then
 			local gapseconds = tonumber(_msg);
 			if (gapseconds >= 0 and gapseconds <= 10000) then
 				SpamThrottle_Config.STGap = tonumber(_msg);
-				DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: gapping now set to |cFF00BEFF" .. SpamThrottle_Config.STGap .. "|cFFFFFFFF seconds.");
+				DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.GappingSetTo .. SpamThrottle_Config.STGap .. SpamThrottleCmdMsg.GappingSeconds);
 			else
-				DEFAULT_CHAT_FRAME:AddMessage("|cFFFFFFFFSpamThrottle: gapping value can only be set from 0 to 10000 seconds.");
+				DEFAULT_CHAT_FRAME:AddMessage(SpamThrottleCmdMsg.GappingCanOnlySet);
 			end
 		elseif ("HELP" == cmd) then
-			SpamThrottleMessage(true,"Type /st or /spamthrottle to display the configuration options menu.");
+			SpamThrottleMessage(true,SpamThrottleCmdMsg.HELP);
 			
 		elseif ("TEST" == cmd) then
 			-- Placeholder for testing
